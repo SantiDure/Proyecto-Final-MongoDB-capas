@@ -2,8 +2,6 @@ import { Router } from "express";
 import { onlySessionActive } from "../../middlewares/autorizaciones.js";
 import { productsManager } from "../../dao/product.dao.mongoose.js";
 import { cartService } from "../../services/cart.service.js";
-import { userService } from "../../services/user.service.js";
-import { usersDaoMongoose, usersManager } from "../../dao/user.dao.mongoose.js";
 export const webRouter = Router();
 
 webRouter.get("/", (req, res) => {
@@ -68,13 +66,13 @@ webRouter.get("/products", onlySessionActive, async (req, res, next) => {
 });
 webRouter.get("/carts/:cid", onlySessionActive, async (req, res, next) => {
   const { cid } = req.params;
-  const result = await cartService.getCartByIdService(cid);
+  const result = await cartService.getCartByIdService({ _id: cid });
   let productList = result;
-  console.log(productList);
+  console.log(productList.products);
   // result.products;
   res.render("cart.handlebars", {
     title: "cart",
     products: productList,
-    productsInCart: productList.length > 0,
+    productsInCart: productList.products.length > 0,
   });
 });

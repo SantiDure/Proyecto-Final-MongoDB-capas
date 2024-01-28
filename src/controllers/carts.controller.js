@@ -20,7 +20,7 @@ export async function getCartByIdController(req, res) {
   const { cid } = req.params;
   try {
     const cartForId = await cartService
-      .getCartByIdService(cid)
+      .getCartByIdService({ _id: cid })
       .populate("products._id")
       .lean();
     return res.json({ cartForId });
