@@ -3,7 +3,7 @@ import {
   getMessageControllerId,
   postMessageController,
   deleteMessageController,
-} from "../controllers/message.controller.js";
+} from "../../controllers/message.controller.js";
 import { Router } from "express";
 export const messageRouter = Router();
 messageRouter.get("/:mid", getMessageControllerId);

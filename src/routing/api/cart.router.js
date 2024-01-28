@@ -7,7 +7,7 @@ import {
   deleteProductOnCartController,
   updateCartController,
   updateProductQuantityOnCartController,
-} from "../controllers/carts.controller.js";
+} from "../../controllers/carts.controller.js";
 import { Router } from "express";
 export const cartRouter = Router();
 cartRouter.get("/:cid", getCartByIdController);

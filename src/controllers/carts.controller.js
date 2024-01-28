@@ -1,8 +1,10 @@
-import { cartsManager, productsManager } from "../dao/mongodb/mongodb.js";
+import { cartsManager } from "../dao/cart.dao.mongoose.js";
+import { cartService } from "../services/cart.service.js";
+import { productService } from "../services/product.service.js";
 
 export async function getCartsController(req, res) {
   let limit = req.query.limit;
-  const data = await cartsManager.find();
+  const data = await cartService.getCartsService({});
   try {
     if (!limit) {
       return res.json(data);
@@ -17,8 +19,8 @@ export async function getCartsController(req, res) {
 export async function getCartByIdController(req, res) {
   const { cid } = req.params;
   try {
-    const cartForId = await cartsManager
-      .findById({ _id: cid })
+    const cartForId = await cartService
+      .getCartByIdService(cid)
       .populate("products._id")
       .lean();
     return res.json({ cartForId });
@@ -39,7 +41,7 @@ export async function postAddProductToCartController(req, res) {
 
 export async function postCartController(req, res) {
   try {
-    await cartsManager.create(req.body);
+    await cartService.createCartService(req.body);
     res.json(req.body);
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -49,10 +51,7 @@ export async function postCartController(req, res) {
 export async function deleteCartController(req, res) {
   const { cid } = req.params;
   try {
-    await cartsManager.findOneAndUpdate(
-      { _id: cid },
-      { $set: { products: [] } }
-    );
+    await cartService.updateOneService(cid, { products: [] });
     res.json(req.body);
   } catch (error) {
     res.status(404).send({ message: error.message });
@@ -62,8 +61,8 @@ export async function deleteCartController(req, res) {
 export async function deleteProductOnCartController(req, res) {
   const { cid, pid } = req.params;
   try {
-    const cart = await cartsManager.find({ _id: cid });
-    const product = await productsManager.find({ _id: pid });
+    const cart = await cartService.getCartByIdService(cid);
+    const product = await productService.getProductByIdService(pid);
     if (!cart || !product) {
       res.status(404).send({
         message: "el producto o el carrito no fueron encontrados",
@@ -81,14 +80,8 @@ export async function updateCartController(req, res) {
   const { cid } = req.params;
 
   try {
-    await cartsManager.findOneAndUpdate(
-      { _id: cid },
-      { $set: { products: [] } }
-    );
-    await cartsManager.updateOne(
-      { _id: cid },
-      { $set: { products: req.body } }
-    );
+    await cartService.updateOneService(cid, { products: [] });
+    await cartService.updateOneService(cid, { products: req.body });
     res.json(cid);
   } catch (error) {
     res.status(404).send({ message: error.message });
@@ -99,11 +92,11 @@ export async function updateProductQuantityOnCartController(req, res) {
   const { cid, pid } = req.params;
   const { quantity } = req.body;
   try {
-    const cart = await cartsManager.findById(cid);
+    const cart = await cartService.getCartByIdService(cid);
 
-    const product = await productsManager.findById(pid);
+    const product = await productService.getProductByIdService(pid);
 
-    const updateCart = await cartsManager.findOneAndUpdate(
+    const updateCart = await cartService.updateOneService(
       {
         _id: cart._id,
         "products._id": product._id,

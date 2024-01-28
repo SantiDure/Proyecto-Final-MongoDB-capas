@@ -1,17 +1,17 @@
-import { COOKIE_SECRET, PORT } from "./config.js";
+import { COOKIE_SECRET, PORT } from "./config/config.js";
 import express, { Router } from "express";
 import handlebars from "express-handlebars";
-import { apiRouter } from "./routers/api.router.js";
-import { webRouter } from "./routers/web.router.js";
+import { apiRouter } from "./routing/api/api.router.js";
+import { webRouter } from "./routing/web/web.router.js";
 import { Server } from "socket.io";
-import { connectDb, productsManager } from "./dao/mongodb/mongodb.js";
-import { messagesManager } from "./dao/mongodb/models/Message.js";
+import { connectDb, productsDaoMongoose } from "./dao/mongodb.js";
 import { sesiones } from "./middlewares/sesiones.js";
 import {
   passportInitialize,
   passportSession,
 } from "./middlewares/autenticaciones.js";
 import cookieParser from "cookie-parser";
+import { messagesDaoMongoose } from "./dao/message.dao.mongoose.js";
 
 /////////////////////////////
 
@@ -31,7 +31,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send("Something went wrong!");
 });
-console.log(process.env);
+// console.log(process.env);
 app.use("/api", apiRouter);
 
 const server = app.listen(PORT, () =>
@@ -47,13 +47,13 @@ app.use("/", webRouter);
 websocketServer.on("connection", async (socket) => {
   console.log(socket.id);
   //getProducts
-  socket.emit("getProducts", await productsManager.find());
+  socket.emit("getProducts", await productsDaoMongoose.readMany({}));
 
   //add
   socket.on(
     "addProduct",
     async ({ title, description, code, price, stock, category, thumbnail }) => {
-      await productsManager.create({
+      await productsDaoMongoose.create({
         title,
         description,
         code,
@@ -62,7 +62,10 @@ websocketServer.on("connection", async (socket) => {
         category,
         thumbnail,
       });
-      websocketServer.emit("getProducts", await productsManager.find());
+      websocketServer.emit(
+        "getProducts",
+        await productsDaoMongoose.readMany({})
+      );
     }
   );
   socket.on("disconnecting", () => {
@@ -70,19 +73,19 @@ websocketServer.on("connection", async (socket) => {
   });
   //delete
   socket.on("deleteProduct", async (productID) => {
-    await productsManager.deleteOne({ _id: productID });
-    websocketServer.emit("getProducts", await productsManager.find());
+    await productsDaoMongoose.deleteOne(productID);
+    websocketServer.emit("getProducts", await productsDaoMongoose.readMany({}));
   });
 
   //getMessage
-  socket.emit("getMessages", await messagesManager.find());
+  socket.emit("getMessages", await messagesDaoMongoose.readMany({}));
   //addMessage
   socket.on("addMessage", async ({ nombreUsuario, emailUsuario, message }) => {
-    await messagesManager.create({
+    await messagesDaoMongoose.create({
       user: nombreUsuario,
       emailUser: emailUsuario,
       content: message,
     });
-    websocketServer.emit("getMessages", await messagesManager.find());
+    websocketServer.emit("getMessages", await messagesDaoMongoose.readMany({}));
   });
 });

@@ -1,16 +1,17 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GithubStrategy } from "passport-github2";
-import { usersManager } from "../dao/mongodb/models/User.js";
+import { usersManager } from "../dao/user.dao.mongoose.js";
 import {
   GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET,
   GITHUB_CALLBACK_URL,
   COOKIE_OPTS,
   JWT_SECRET,
-} from "../config.js";
+} from "../config/config.js";
 import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import { decrypt, encrypt } from "../utils/criptograph.js";
+import { userService } from "../services/user.service.js";
 
 export async function appendJwtAsCookie(req, res, next) {
   try {
@@ -93,9 +94,11 @@ passport.use(
       callbackURL: GITHUB_CALLBACK_URL,
     },
     async (_, __, profile, done) => {
-      let user = await usersManager.findOne({ email: profile.displayName });
+      let user = await userService.getUserByIdService({
+        email: profile.displayName,
+      });
       if (!user) {
-        user = await usersManager.create({
+        user = await userService.create({
           email: profile.email,
           first_name: profile.displayName,
         });

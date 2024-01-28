@@ -1,9 +1,10 @@
-import { messagesManager } from "../dao/mongodb/models/Message.js";
+import { messageService } from "../services/message.service.js";
+import { productService } from "../services/product.service.js";
 
 export async function getMessagesController(req, res) {
   let limit = Number(req.query.limit);
   try {
-    const data = await messagesManager.find();
+    const data = await messageService.getMessagesService();
     if (!limit) {
       return res.json(data);
     }
@@ -17,7 +18,7 @@ export async function getMessagesController(req, res) {
 export async function getMessageControllerId(req, res) {
   const id = req.params.id;
   try {
-    const messageForId = await messagesManager.findById(id);
+    const messageForId = await messageService.getMessageByIdService(id);
     return res.json({ messageForId });
   } catch (error) {
     res.status(404).send({ message: error.message });
@@ -26,7 +27,7 @@ export async function getMessageControllerId(req, res) {
 
 export async function postMessageController(req, res) {
   try {
-    await messagesManager.create(req.body);
+    await messageService.createMessageService(req.body);
     res.json(req.body);
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -36,7 +37,7 @@ export async function postMessageController(req, res) {
 export async function deleteMessageController(req, res) {
   const { id } = req.params;
   try {
-    await productsManager.deleteOne({ _id: id });
+    await productService.delteOneService(id);
     res.json(req.body);
   } catch (error) {
     res.status(404).send({ message: error.message });

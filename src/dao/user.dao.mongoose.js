@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import { randomUUID } from "node:crypto";
-import { hashCompare } from "../../../utils/criptograph.js";
-import { generateUniqueUsername } from "../../../utils/randomUserName.js";
+import { hashCompare } from "../utils/criptograph.js";
+import { generateUniqueUsername } from "../utils/randomUserName.js";
+import { cartService } from "../services/cart.service.js";
 const collection = "users";
 const userSchema = new mongoose.Schema(
   {
@@ -11,7 +12,7 @@ const userSchema = new mongoose.Schema(
     first_name: { type: String, default: generateUniqueUsername },
     last_name: { type: String, default: "unknow" },
     age: { type: Number, default: 0 },
-    cart: { type: String, default: randomUUID },
+    cart: { type: Object, required: true },
     rol: { type: String, default: "user" },
   },
   {
@@ -58,3 +59,30 @@ const userSchema = new mongoose.Schema(
 );
 
 export const usersManager = mongoose.model(collection, userSchema);
+
+class UsersDaoMongoose {
+  async create(data) {
+    const cartToNewUser = await cartService.createCartService();
+    data.cart = cartToNewUser;
+    const user = await usersManager.create(data);
+
+    return user.toObject();
+  }
+  async readOne(id) {
+    return await usersManager.findOne({ _id: id }).lean();
+  }
+  async readMany(query) {
+    return await usersManager.find(query).lean();
+  }
+  async updateOne(id, data) {
+    return await usersManager
+      .findOneAndUpdate({ _id: id }, { $set: data }, { new: true })
+      .lean();
+  }
+
+  async deleteOne(id) {
+    return await usersManager.findOneAndDelete({ _id: id }).lean();
+  }
+}
+
+export const usersDaoMongoose = new UsersDaoMongoose();

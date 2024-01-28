@@ -1,10 +1,8 @@
 import { Router } from "express";
-import { onlySessionActive } from "../middlewares/autorizaciones.js";
+import { onlySessionActive } from "../../middlewares/autorizaciones.js";
 import passport from "passport";
-import { usersManager } from "../dao/mongodb/models/User.js";
-import { encrypt, hashCompare } from "../utils/criptograph.js";
-import { COOKIE_OPTS } from "../config.js";
-import { appendJwtAsCookie } from "../middlewares/autenticaciones.js";
+
+import { appendJwtAsCookie } from "../../middlewares/autenticaciones.js";
 export const sessionRouter = Router();
 
 sessionRouter.post(

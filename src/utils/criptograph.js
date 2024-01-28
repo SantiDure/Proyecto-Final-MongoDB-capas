@@ -1,6 +1,6 @@
 import { hashSync, compareSync, genSaltSync } from "bcrypt";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../config.js";
+import { JWT_SECRET } from "../config/config.js";
 export function hashear(password) {
   return hashSync(password, genSaltSync(10));
 }

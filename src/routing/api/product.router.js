@@ -4,7 +4,7 @@ import {
   postProductController,
   putProductController,
   deleteProductController,
-} from "../controllers/product.controller.js";
+} from "../../controllers/product.controller.js";
 import { Router } from "express";
 export const productRouter = Router();
 productRouter.get("/", getProductController);

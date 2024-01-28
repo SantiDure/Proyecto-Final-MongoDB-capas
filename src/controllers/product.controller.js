@@ -1,5 +1,5 @@
-import { productsManager } from "../dao/mongodb/mongodb.js";
-
+import { productService } from "../services/product.service.js";
+import { productsManager } from "../dao/product.dao.mongoose.js";
 export async function getProductController(req, res) {
   const options = {
     page: req.query.page || 1,
@@ -34,7 +34,7 @@ export async function getProductController(req, res) {
 export async function getProductControllerId(req, res) {
   const id = req.params.id;
   try {
-    const productForId = await productsManager.findById(id);
+    const productForId = await productService.getProductByIdService(id);
     return res.json({ productForId });
   } catch (error) {
     res.status(404).send({ message: error.message });
@@ -43,7 +43,7 @@ export async function getProductControllerId(req, res) {
 
 export async function postProductController(req, res) {
   try {
-    await productsManager.create(req.body);
+    await productService.createProductService(req.body);
     res.json(req.body);
   } catch (error) {
     res.status(400).send({ message: error.message });
@@ -53,7 +53,7 @@ export async function postProductController(req, res) {
 export async function putProductController(req, res) {
   const { id } = req.params;
   try {
-    await productsManager.updateOne({ _id: id }, { $set: req.body });
+    await productService.updateOneService(id, req.body);
     res.json(id);
   } catch (error) {
     res.status(404).send({ message: error.message });
@@ -63,7 +63,7 @@ export async function putProductController(req, res) {
 export async function deleteProductController(req, res) {
   const { id } = req.params;
   try {
-    await productsManager.deleteOne({ _id: id });
+    await productService.delteOneService(id);
     res.json(req.body);
   } catch (error) {
     res.status(404).send({ message: error.message });

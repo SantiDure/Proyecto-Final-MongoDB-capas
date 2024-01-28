@@ -1,43 +1,36 @@
-import { Router } from "express";
-import { usersManager } from "../dao/mongodb/models/User.js";
-import { encrypt, hashear } from "../utils/criptograph.js";
-import { authenticate } from "../middlewares/autenticaciones.js";
-import { COOKIE_OPTS } from "../config.js";
-import { getTokenFromCookie } from "../middlewares/tokens.js";
-import { onlySessionActive } from "../middlewares/autorizaciones.js";
+import { userService } from "../services/user.service.js";
+import { hashear } from "../utils/criptograph.js";
 import passport from "passport";
 
-export const usersRouter = Router();
-
-usersRouter.post("/", async (req, res) => {
+export async function postUserController(req, res) {
   try {
     req.body.password = hashear(req.body.password);
-    const user = await usersManager.create(req.body);
+    const user = await userService.createUserService(req.body);
 
     res.status(201).json({
       status: "success",
-      payload: user.toObject(),
+      payload: user,
     });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
-});
+}
 
-usersRouter.get("/current", (req, res) => {
+export async function getUserController(req, res) {
   //debe comprobar que existe un token para devolver la informacion del usuario
   passport.authenticate("jwt", { failWithError: true }),
     async (req, res) => {
       res.json({ status: "success", payload: req.user });
     };
-});
+}
 
-usersRouter.put("/", async function (req, res) {
+export async function putUserController(req, res) {
   try {
     if (req.body.password) {
       req.body.password = hashear(req.body.password);
     }
 
-    const updated = await usersManager.findOneAndUpdate(
+    const updated = await userService.updateOneService(
       { email: req.body.email },
       { $set: req.body },
       { new: true }
@@ -53,4 +46,13 @@ usersRouter.put("/", async function (req, res) {
   } catch (error) {
     res.status(400).json({ status: "error", message: error.message });
   }
-});
+}
+
+export async function deleteUserController(req, res) {
+  const { id } = req.params;
+  try {
+    return await userService.delteOneService(id);
+  } catch (error) {
+    res.status(404).json({ status: "error", message: error.messaje });
+  }
+}

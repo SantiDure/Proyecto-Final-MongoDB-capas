@@ -22,3 +22,27 @@ const productSchema = new Schema(
 productSchema.plugin(mongoosePaginate);
 
 export const productsManager = model("products", productSchema);
+
+class ProductsDaoMongoose {
+  async create(data) {
+    const product = await productsManager.create(data);
+    return product.toObject();
+  }
+  async readOne(id) {
+    return await productsManager.findOne({ _id: id }).lean();
+  }
+  async readMany(query) {
+    return await productsManager.find(query).lean();
+  }
+  async updateOne(id, data) {
+    return await productsManager
+      .findOneAndUpdate({ _id: id }, { $set: data }, { new: true })
+      .lean();
+  }
+
+  async deleteOne(id) {
+    return await productsManager.findOneAndDelete({ _id: id }).lean();
+  }
+}
+
+export const productsDaoMongoose = new ProductsDaoMongoose();
